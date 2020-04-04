@@ -1,11 +1,11 @@
+use crate::hittables::HitResult;
 use crate::ray::Ray;
 use crate::vec3::Vec3;
-use crate::hittables::HitResult;
 
 #[derive(Debug, Copy, Clone)]
 pub enum Reflectance {
     Diffuse,
-    Mirrory
+    Mirrory,
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -13,9 +13,9 @@ pub struct Material {
     // in the range [0, 1]
     absorption_p: f64,
     scattering_p: f64,
-    roughness: f64, 
+    roughness: f64,
     reflectance: Reflectance,
-    color : Vec3
+    color: Vec3,
 }
 
 impl Material {
@@ -25,7 +25,7 @@ impl Material {
             scattering_p: 0.0,
             roughness: 0.0,
             reflectance: Reflectance::Diffuse,
-            color: Vec3::ones()
+            color: Vec3::ones(),
         }
     }
 
@@ -62,14 +62,26 @@ impl Material {
         let dice = rand::random::<f64>();
         if dice < self.scattering_p {
             let direction = match self.reflectance {
-                Reflectance::Diffuse => { normal },
+                Reflectance::Diffuse => normal,
                 Reflectance::Mirrory => {
-                    in_ray_direction - 2.0*in_ray_direction.dot(&normal)*normal
+                    in_ray_direction - 2.0 * in_ray_direction.dot(&normal) * normal
                 }
-            } + self.roughness*Vec3::random_in_unit_sphere();
-            HitResult::Scatter(self.color, 1.0 - self.absorption_p, Ray{origin: point, direction})
+            } + self.roughness * Vec3::random_in_unit_sphere();
+            HitResult::Scatter(
+                (1.0 - self.absorption_p)*self.color,
+                Ray {
+                    origin: point,
+                    direction,
+                },
+            )
         } else {
-            HitResult::Scatter(Vec3::zeros(), 1.0, Ray{origin: point, direction: in_ray_direction})
+            HitResult::Scatter(
+                Vec3::zeros(),
+                Ray {
+                    origin: point,
+                    direction: in_ray_direction,
+                },
+            )
         }
     }
 }
