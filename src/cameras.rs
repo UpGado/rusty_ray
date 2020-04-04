@@ -1,7 +1,7 @@
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 
-pub trait Camera {
+pub trait Camera: Sync + Send {
     fn get_ray(&self, u: f64, v: f64) -> Ray;
 }
 

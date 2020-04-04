@@ -1,3 +1,4 @@
+#![feature(let_chains)]
 mod cameras;
 mod hittables;
 mod io;
@@ -8,7 +9,7 @@ mod vec3;
 use cameras::SimpleCamera;
 use hittables::{Hittables, Sphere};
 use materials::{Material, Reflectance};
-use renderers::{Renderer, SingleThreadedRenderer};
+use renderers::Renderer;
 use vec3::Vec3;
 
 fn main() {
@@ -75,7 +76,14 @@ fn main() {
         origin,
     };
 
-    let img = SingleThreadedRenderer::render(width, height, &camera, &world);
+    let img = if {
+        let multithreaded = true;
+        multithreaded
+    } {
+        renderers::MultithreadedRenderer::render(width, height, &camera, &world)
+    } else {
+        renderers::SingleThreadedRenderer::render(width, height, &camera, &world)
+    };
     io::save_img(&img, io::FileFormat::PNG, "test");
     eprintln!("done!");
 }

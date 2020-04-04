@@ -12,7 +12,7 @@ pub struct Hit {
     pub time: f64,
 }
 
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hits(&self, ray: Ray, t_min: f64, t_max: f64) -> Option<Hit>;
     // returns Option<(Hit_Point, Normal)>
     fn material(&self) -> Material;

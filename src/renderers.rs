@@ -1,9 +1,10 @@
 use crate::cameras::Camera;
 use crate::hittables::{Hit, HitResult, Hittable};
-use crate::io::Img;
+use crate::io::{Img, Pixel};
 use crate::ray::Ray;
 use crate::vec3::Vec3;
 use rand::prelude::*;
+use rayon::prelude::*;
 use std::f64::INFINITY;
 use HitResult::Scatter;
 
@@ -47,6 +48,35 @@ impl Renderer for SingleThreadedRenderer {
                     let r = camera.get_ray(u, v);
                     color += ray_color(r, world, max_scatter_depth);
                 }
+                color /= samples_per_pixel as f64;
+                row.push(color.as_pixel());
+            }
+            img.push(row);
+        }
+        img
+    }
+}
+
+pub enum MultithreadedRenderer {}
+
+impl Renderer for MultithreadedRenderer {
+    fn render(width: usize, height: usize, camera: &impl Camera, world: &impl Hittable) -> Img {
+        let samples_per_pixel = 100;
+        let max_scatter_depth = 50;
+        let mut img: Img = Vec::with_capacity(height);
+        for j in 0..height {
+            let mut row: Vec<Pixel> = Vec::with_capacity(width);
+            for i in 0..width {
+                let mut color: Vec3 = (0..samples_per_pixel)
+                    .into_par_iter()
+                    .map(|_s| {
+                        let mut rng = rand::thread_rng();
+                        let u = (i as f64 + rng.gen::<f64>()) / width as f64;
+                        let v = ((height - j) as f64 + rng.gen::<f64>()) / height as f64;
+                        let r = camera.get_ray(u, v);
+                        ray_color(r, world, max_scatter_depth)
+                    })
+                    .reduce(|| Vec3::zeros(), |sum, i| sum + i);
                 color /= samples_per_pixel as f64;
                 row.push(color.as_pixel());
             }
