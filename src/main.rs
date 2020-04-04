@@ -1,46 +1,20 @@
 mod cameras;
 mod hittables;
+mod io;
 mod materials;
 mod ray;
+mod renderers;
 mod vec3;
-use cameras::{Camera, SimpleCamera};
-use hittables::{Hit, HitResult, Hittable, Hittables, Sphere};
+use cameras::SimpleCamera;
+use hittables::{Hittables, Sphere};
 use materials::{Material, Reflectance};
-use rand::prelude::*;
-use ray::Ray;
-use rayon::prelude::*;
-use std::f64::consts::PI;
-use std::f64::INFINITY;
+use renderers::{Renderer, SingleThreadedRenderer};
 use vec3::Vec3;
-use HitResult::Scatter;
-
-fn ray_color(r: Ray, world: &impl Hittable, max_scatter_depth: i32) -> Vec3 {
-    if max_scatter_depth == 0 {
-        Vec3::zeros()
-    } else {
-        match world.hits(r, 0.001, INFINITY) {
-            Some(Hit {
-                result: Scatter(color, new_ray),
-                ..
-            }) => color * ray_color(new_ray, world, max_scatter_depth - 1),
-            None => {
-                let unit_direction = r.direction.unit_vector();
-                let t = 0.5 * (unit_direction.1 + 1.0);
-                (1.0 - t) * Vec3(1.0, 1.0, 1.0) + t * Vec3(0.5, 0.7, 1.0)
-            }
-        }
-    }
-}
 
 fn main() {
-    let scale = 4;
+    let scale = 1;
     let width = scale * 200;
     let height = scale * 100;
-    let max_val = 255;
-    let samples_per_pixel = 100;
-    let max_scatter_depth = 50;
-
-    println!("P3\n{} {}\n{}", width, height, max_val);
 
     let origin = Vec3::zeros();
     let lower_left_corner = Vec3(-2.0, -1.0, -1.0);
@@ -101,22 +75,7 @@ fn main() {
         origin,
     };
 
-    let mut rng = rand::thread_rng();
-    for j in (0..height).rev() {
-        if (j & 0xff) == 0 {
-            eprintln!("{} rows remaining", j);
-        }
-        for i in 0..width {
-            let mut color = Vec3::zeros();
-            for _ in 0..samples_per_pixel {
-                let u = (i as f64 + rng.gen::<f64>()) / width as f64;
-                let v = (j as f64 + rng.gen::<f64>()) / height as f64;
-                let r = camera.get_ray(u, v);
-                color += ray_color(r, &world, max_scatter_depth);
-            }
-            color /= samples_per_pixel as f64;
-            println!("{}", color.color_string());
-        }
-    }
+    let img = SingleThreadedRenderer::render(width, height, &camera, &world);
+    io::save_img(&img, io::FileFormat::PPM);
     eprintln!("done!");
 }

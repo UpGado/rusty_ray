@@ -1,3 +1,4 @@
+use crate::io::Pixel;
 use rand::prelude::*;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
@@ -45,9 +46,9 @@ impl Vec3 {
         self.0.powi(2) + self.1.powi(2) + self.2.powi(2)
     }
 
-    pub fn color_string(&self) -> String {
+    pub fn as_pixel(&self) -> Pixel {
         let c = |x| (clamp(x, 0.0, 1.0) * 255.0) as u8;
-        format!("{} {} {}", c(self.0), c(self.1), c(self.2))
+        (c(self.0), c(self.1), c(self.2))
     }
 
     pub fn dot(&self, other: &Self) -> f64 {

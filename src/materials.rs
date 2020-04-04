@@ -68,7 +68,7 @@ impl Material {
                 }
             } + self.roughness * Vec3::random_in_unit_sphere();
             HitResult::Scatter(
-                (1.0 - self.absorption_p)*self.color,
+                (1.0 - self.absorption_p) * self.color,
                 Ray {
                     origin: point,
                     direction,
