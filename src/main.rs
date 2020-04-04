@@ -12,7 +12,7 @@ use renderers::{Renderer, SingleThreadedRenderer};
 use vec3::Vec3;
 
 fn main() {
-    let scale = 1;
+    let scale = 5;
     let width = scale * 200;
     let height = scale * 100;
 
@@ -76,6 +76,6 @@ fn main() {
     };
 
     let img = SingleThreadedRenderer::render(width, height, &camera, &world);
-    io::save_img(&img, io::FileFormat::PPM);
+    io::save_img(&img, io::FileFormat::PNG, "test");
     eprintln!("done!");
 }
